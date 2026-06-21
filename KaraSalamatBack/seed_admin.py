@@ -16,7 +16,6 @@ from models import Base, AdminReg, User
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
 
-Base.metadata.create_all(bind=engine)
 print("[+] Tables ensured")
 
 SessionLocal = sessionmaker(bind=engine)

@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #f8f8f8;
+  direction: rtl;
+}
+
+*:focus-visible {
+  outline: 2px solid #8163F4;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input:focus-visible {
+  outline: none;
+  border-color: #8163F4;
+  box-shadow: 0 0 0 2px rgba(129, 99, 244, 0.2);
+}

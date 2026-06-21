@@ -1,0 +1,69 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-karasalamat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-karasalamat}
+      POSTGRES_DB: ${POSTGRES_DB:-karasalamat}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-karasalamat}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - karasalamat-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./KaraSalamatBack
+      dockerfile: Dockerfile
+    environment:
+      PYTHONUNBUFFERED: 1
+      DATABASE_URL: ${DATABASE_URL:-postgresql://karasalamat:karasalamat@postgres:5432/karasalamat}
+      SECRET_KEY: ${SECRET_KEY}
+      OTP_EXP_DAYS: ${OTP_EXP_DAYS:-30}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      BACKEND_PORT: ${BACKEND_PORT:-8001}
+      OTP_MOCK: ${OTP_MOCK:-true}
+    ports:
+      - "8001:8001"
+    command: sh -c "python seed_admin.py && uvicorn main:app --host 0.0.0.0 --port 8001 --reload"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/test_connection"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - karasalamat-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./KaraSalamFront
+      dockerfile: Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8001}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - karasalamat-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  karasalamat-network:
+    driver: bridge

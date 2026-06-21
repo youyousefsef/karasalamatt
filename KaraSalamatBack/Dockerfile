@@ -31,4 +31,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8001
 
-CMD ["sh", "-c", "python seed_admin.py && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8001}"]
+CMD ["sh", "-c", "alembic upgrade head && python seed_admin.py && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8001}"]
